@@ -43,6 +43,12 @@ func (m *Memoizer) Memoize(key string, fn func() (interface{}, error)) (interfac
 
 	// Combine memoized function with a cache store
 	value, err, _ := m.group.Do(key, func() (interface{}, error) {
+		// Check cache again in case another call populated it after the initial check.
+		value, found := m.Storage.Get(key)
+		if found {
+			return value, nil
+		}
+
 		data, innerErr := fn()
 
 		if innerErr == nil {
@@ -79,6 +85,12 @@ func Call[T any](m *Memoizer, key string, fn MemoizedFunction[T]) (T, error, boo
 
 	// Combine memoized function with a cache store
 	value, err, _ := m.group.Do(key, func() (any, error) {
+		// Check cache again in case another call populated it after the initial check.
+		value, found := m.Storage.Get(key)
+		if found {
+			return value, nil
+		}
+
 		data, innerErr := fn()
 
 		if innerErr == nil {
